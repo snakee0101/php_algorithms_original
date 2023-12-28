@@ -2,58 +2,34 @@
 
 class Stack
 {
-    private array $items;   //массив для хранения данных стека
-    private int $top = -1;  //хранит индекс вершины стека (потому что нельзя пользоваться функциями для работы с массивами - поэтому последний иднекс нужно помнить) – к примеру, вместо реального удаления просто уменьшается индекс вершины стека и кажется, что элемент удален.
+    protected array $items;
+    protected int $top = -1;
 
     public function push($data)
     {
-        /*
-         * сначала увеличиваем индекс вершини на единицу(++$this->top),
-         * а потом добавляем элемент в вершину стека (по этому новому индексу)
-         * – преинкремент возвращает уже новое значение*/
-        $this->items[ ++$this->top ] = $data;
+        $this->items[++$this->top] = $data;
     }
 
-    public function pop() :mixed
+    public function pop(): mixed
     {
-        if($this->top == -1)  //если последний элемент уже был удален - возвращаем null
+        if ($this->top == -1)
             return null;
 
-        /*
-        * возвращаем удаляемый элемент (последний элемент стека),
-        * а потом уменьшаем индекс вершины стека ($this→top--)
-        * - постинкремент возвращает старое значение
-        * */
-        return $this->items[ $this->top-- ];
+        return $this->items[$this->top--];
     }
 
-    public function peek() :mixed
+    public function peek(): mixed
     {
-        return $this->items[$this->top] ?? null;  //просто возвращаем последний элемент
+        return $this->items[$this->top] ?? null;
     }
 
-    public function isEmpty() :bool
+    public function isEmpty(): bool
     {
-        /*
-         * поскольку операции работы с массивами недоступны, единственное, что мы можем
-         * - это проверить индекс вершины стека
-        **/
         return $this->top == -1;
     }
-}
 
-function reverse($str) :string
-{
-    $i = 0;
-    $stack = new Stack();
-
-    while( $str[$i] != null )
-        $stack->push( $str[$i++] );
-
-    $temp = '';
-
-    while ( !$stack->isEmpty() )
-        $temp .= $stack->pop();
-
-    return $temp;
+    public function size()
+    {
+        return count($this->items);
+    }
 }

@@ -13,7 +13,7 @@ class Stack
 
     public function push($data)
     {
-        return $this->items->insertFirst( $data );  //в стеке ключи не важны
+        return $this->items->insertFirst($data);  //в стеке ключи не важны
     }
 
     public function pop()
@@ -32,13 +32,15 @@ class Stack
     }
 }
 
-var_dump(PHP_INT_MIN);
+
+
+
 
 $stack = new Stack();
 
-$stack->push( 12 );
-$stack->push( 'test' );
-$stack->push( 'NEXT' );
+$stack->push(12);
+$stack->push('test');
+$stack->push('NEXT');
 //$stack->push( 'hjghj' );
 //$stack->push( 700 );
 
@@ -48,6 +50,6 @@ $stack->pop();
 //$stack->pop( );
 //$stack->push( 'str' );
 
-var_dump( $stack );
+var_dump($stack);
 
 //var_dump( $stack );
