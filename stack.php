@@ -18,7 +18,7 @@ class Stack
         return $this->items[$this->top--];
     }
 
-    public function peek(): mixed
+    public function top(): mixed
     {
         return $this->items[$this->top] ?? null;
     }
@@ -26,6 +26,43 @@ class Stack
     public function isEmpty(): bool
     {
         return $this->top == -1;
+    }
+
+    public function size()
+    {
+        return count($this->items);
+    }
+}
+
+
+#Special implementation to make stack contents comparable
+class ComparableStack
+{
+    protected array $items = [];
+
+    public function push($data)
+    {
+        array_push($this->items, $data);
+    }
+
+    public function pop(): mixed
+    {
+        if (empty($this->items))
+            return null;
+
+        return array_pop($this->items);
+    }
+
+    public function top(): mixed
+    {
+        $key = array_key_last($this->items);
+
+        return empty($this->items) ? null : $this->items[$key];
+    }
+
+    public function isEmpty(): bool
+    {
+        return empty($this->items);
     }
 
     public function size()

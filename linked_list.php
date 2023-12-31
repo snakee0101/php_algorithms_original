@@ -4,144 +4,113 @@ class LinkedListItem
 {
     public $next;
 
-    public function __construct(public $data,
-                                public $key) { }
+    public function __construct(
+        public $data,
+        public $key
+    ) {
+    }
 }
 
 class LinkedList
 {
     public $first;
 
-    public function __construct() { }
+    /**
+     * If the key is not explicitly set (key == null) - create a random key,
+     * because it's required as an identifier of a list item
+     */
+    protected function createListItem($data, $key = null): LinkedListItem
+    {
+        if ($this->find($key))
+            throw new Exception('Item with such key already exists');
+
+        return new LinkedListItem($data, $key ?? rand());
+    }
 
     public function isEmpty(): bool
     {
-        return $this->first == null;
+        return $this->first === null;
     }
 
-    public function insertFirst($data, $key = null)
+    public function insertFirst($data, $key = null): LinkedListItem
     {
-        if( $this->find($key) )
-            throw new Exception('Item with such key already exists');
+        $item = $this->createListItem($data, $key);
 
-        $key ??= rand();    //если ключ не задан явно - создадим его автоматически
-        $item = new LinkedListItem($data, $key);    //при создании элемента списка нужно задать ключ
-
-        /*
-         * Вставляемый элемент должен указывать на тот, который раньше был первым
-         * */
-        $item->next = $this->first;
-
-        /*
-         * Первый элемент списка (он хранится как поле $first списка) должен указывать на вставляемый.
-         * */
-        $this->first = $item;
-
-        return $item;
+        $item->next = $this->first;     //inserted item must point to the item that was first before
+        return $this->first = $item;    //first list item ($list->first) must point to the inserted item.
     }
 
-    public function getItemBefore($key) :LinkedListItem
+    public function findPrevious($key): LinkedListItem
     {
-        $current_item = $this->first;
+        $current = $this->first;
 
-        while($current_item)
-        {
-            $next_item = $current_item->next;
+        while ($current) {
+            if ($current->next->key === $key)  //if the next item is the item we are searching for - then it is the previous item
+                return $current;
 
-            if($next_item->key == $key)  //Если следующий элемент относительно текущего - искомый - значит, мы нашли элемент
-                return $current_item;
-
-            $current_item = $current_item->next;
+            $current = $current->next;
         }
     }
 
     public function delete($key)
     {
-        /**
-         * сначала найдем элемент, предыдущий относительно удаляемого
-         * */
-        $item_before = $this->getItemBefore($key);
-        $item = $item_before->next; //удаляемый элемент - это следующий
+        //call the specific method to delete the first item
+        if ($this->first->key === $key)
+            $this->deleteFirst();
 
-        /**
-         * предыдущий элемент должен указывать на следующий относительно удаляемого элемента
-         * */
-        $item_before->next = $item->next;
+        $prev = $this->findPrevious($key);
 
-        return $item;
+        $deleted_item = $prev->next;        //find the item that will be deleted
+        $prev->next = $deleted_item->next;  //just skip the deleted item
+
+        return $deleted_item;
     }
 
     public function insertAfter($after_key, $data, $key = null)
     {
-        if( $this->find($key) )
-            throw new Exception('Item with such key already exists');
+        $item = $this->createListItem($data, $key);
+        $after = $this->find($after_key); //the item, after which $item is inserted
 
-        $key ??= rand();    //если ключ не задан явно - создадим его автоматически
-        $item = new LinkedListItem($data, $key);    //при создании элемента списка нужно задать ключ
-
-        $after = $this->find( $after_key ); //найдем элемент, после которого вставляем
-
-        /*
-         * элемент, который вставляем, должен указывать на следующий
-         * элемент относительно того элемента, после которого вставляем
-         * */
-        $item->next = $after->next;
-
-        /*
-         * а вот элемент, после которого вставляем, должен указывать на
-         * элемент, который вставляем
-         * */
-        $after->next = $item;
-
-        return $item;
+        $item->next = $after->next; //inserted $item must point to the item next to it
+        return $after->next = $item;   //previous item ($after) must point to the inserted $item
     }
 
-    public function insertLast($data, $key = null)
+    public function insertLast($data, $key = null): LinkedListItem
     {
-        if( $this->find($key) )
-            throw new Exception('Item with such key already exists');
+        if ($this->first == null)   #if there is not first item - create and return it
+            return $this->insertFirst($data, $key);
 
-        $key ??= rand();    //если ключ не задан явно - создадим его автоматически
-
-        $item = new LinkedListItem($data, $key);    //при создании элемента списка нужно задать ключ
-
-
-        if($this->first == null)
-            return $this->insertFirst( $data, $key );
+        $item = $this->createListItem($data, $key);
 
         $last_item = $this->first;
 
-        while($last_item?->next != null) //найдем последний элемент
+        while ($last_item?->next != null)    //find the last item
             $last_item = $last_item->next;
 
-        $last_item->next = $item;    //вставим элемент после последнего
-
-        return $item;
+        return $last_item->next = $item;    //insert created item after the last one
     }
 
-    public function deleteFirst() :LinkedListItem
+    public function deleteFirst(): LinkedListItem
     {
         $item = $this->first;
-        /*
-         * Ссылка на первый элемент теперь должна указывать на второй
-         * */
-        $this->first = $this->first->next;
+
+        $this->first = $this->first->next; //head of the list must point to the second item (item, next to the first)
 
         return $item;
     }
 
-    public function find($key) :?LinkedListItem
+    public function find($key): ?LinkedListItem
     {
-        $item = $this->first; //начнем обход с первого элемента
+        $item = $this->first;   //the search starts from the first item
 
-        while($item) //пока существует следующий элемент (обходим все элементы)
+        while ($item) //go through all items, while next item exists
         {
-            if($item->key == $key) //если нашли элемент (для этого данные элемента ($key) должны совпадать)
-                return $item; //возвращаем его и выходим из цикла
+            if ($item->key === $key)    //if the item is found (by $key)
+                return $item;   //then return it
 
-            $item = $item->next ?? null; //переход к следующему элементу, если он существует
+            $item = $item->next; //go to the next item
         }
 
-        return null; //если элемент не найден - вернем null
+        return null;    //if item doesn't exist - return null
     }
 }

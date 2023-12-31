@@ -2,12 +2,12 @@
 
 include "linked_list.php";
 
-function reverse($head) :LinkedListItem
+function reverse($head): LinkedListItem
 {
-    if( $head->next == null ) //,,, пока не достигнем конца
+    if ($head->next == null) //,,, пока не достигнем конца
         return $head;   // - тогда последний элемент будет новым первым элементом
 
-    $new_head = reverse( $head->next );     //рекурсивно переходим к следующему элементу...
+    $new_head = reverse($head->next);     //рекурсивно переходим к следующему элементу...
 
     //как только достигли конца - можно начать менять указатели на элементы (переворачивать список)
     //на данный момент $head - это текущий элемент, а $new_head - вершина нового списка - новый первый элемент
@@ -24,9 +24,15 @@ function reverse($head) :LinkedListItem
 }
 
 
-$list = new LinkedList( );
-$list->insertFirst(30, 30);
-$list->insertFirst(20, 20);
+$list = new LinkedList();
+$list->insertFirst(20, '2022-10-23');
 $list->insertFirst(10, 10);
+$list->insertLast(30, 30);
+$list->insertAfter('2022-10-23', 'after', 'after');
 
-var_dump( reverse($list->first) );
+$list->delete('after');
+$list->delete('2022-10-23');
+
+print_r($list);
+echo "\n\n";
+print_r(reverse($list->first));
