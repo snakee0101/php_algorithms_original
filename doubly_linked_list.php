@@ -3,89 +3,82 @@
 class DoublyLinkedListItem
 {
     public ?self $next, //ссылка на следующий элемент
-                 $prev; //ссылка на предыдущий элемент
+        $prev; //ссылка на предыдущий элемент
 
-    public function __construct(public $key,
-                                public $data) { }
+    public function __construct(
+        public $key,
+        public $data
+    ) {
+    }
 }
 
 class DoublyLinkedList
 {
     public ?DoublyLinkedListItem $first = null,   //первый элемент списка
-                                 $last = null;    //последний элемент списка
+        $last = null;    //последний элемент списка
 
-    public function find($key) :?DoublyLinkedListItem   //такая же процедура, как и в LinkedList
+    public function find($key)  //the same technique, as in normal linked list
     {
         $item = $this->first;
 
-        while($item)
-        {
-            if($item->key == $key)
+        while ($item) {
+            if ($item->key === $key)
                 return $item;
 
-            $item = $item->next ?? null;
+            $item = $item->next;
         }
-
-        return null;
     }
 
     public function isEmpty(): bool
     {
-        return $this->first == null;
+        return $this->first === null;
     }
 
-    public function insertFirst($data, $key = null) :DoublyLinkedListItem
+    public function insertFirst($data, $key = null): DoublyLinkedListItem
     {
-        if( $this->find($key) )
+        if ($this->find($key))
             throw new Exception('Item with such key already exists');
 
-        $key ??= rand();    //если ключ не задан явно - создадим его автоматически
+        $item = new DoublyLinkedListItem($data, $key ?? rand());  //key is required
 
-        $item = new DoublyLinkedListItem($data, $key);    //при создании элемента списка нужно задать ключ
-
-        $item->next = $this->first; //вставляем элемент на первую позицию
+        $item->next = $this->first; //insert item before the first item
         $item->prev = null;
 
-        if( $this->isEmpty() ) //если список пустой
-            $this->last = $item;    //- то первый и последний элемент - это одно и то же
-        else    //но если список не пустой
-            $this->first->prev = $item; // - то старый первый элемент указывает (->prev) на вставляемый
+        if ($this->isEmpty())
+            $this->last = $item;    //set last item if the list is empty
+        else
+            $this->first->prev = $item; //otherwise - old first item must point (->prev) to the inserted item
 
-        $this->first = $item; //вставляем элемент на первую позицию
-
-        return $item;
+        return $this->first = $item;   //dont forget about $list->first pointer
     }
 
-    public function insertAfter($after_key, $data, $key = null) :DoublyLinkedListItem
+    public function insertAfter($after_key, $data, $key = null): DoublyLinkedListItem
     {
-        if( $this->find($key) )
+        if ($this->find($key))
             throw new Exception('Item with such key already exists');
 
-        $key ??= rand();    //если ключ не задан явно - создадим его автоматически
+        $inserted = new DoublyLinkedListItem($data, $key ?? rand());  //key is required
 
-        $inserted = new DoublyLinkedListItem($data, $key);    //при создании элемента списка нужно задать ключ
-        $after = $this->find($after_key);   //найдем элемент, после которого вставлять
+        $after = $this->find($after_key);
 
-        $inserted->next = $after->next;     //переставим элемент в нужном порядке
-
-        if ($after->next != null)    //если элемент не последний
-            $inserted->next->prev = $inserted;  //- устанавливаем ссылку ->prev следующего элемента (потому что после последнего элементов не существует)
-
+        $inserted->next = $after->next;
         $inserted->prev = $after;
-        $after->next = $inserted;
 
-        return $inserted;
+        if ($after->next != null)    //if the item is not the last item
+            $inserted->next->prev = $inserted;  //set the ->prev pointer of the next item to the inserted item
+
+        return $after->next = $inserted;
     }
 
-    public function insertLast($data, $key = null) :DoublyLinkedListItem
+    public function insertLast($data, $key = null): DoublyLinkedListItem
     {
-        $item = $this->isEmpty() ? $this->insertFirst($data, $key) //если список пустой - обработаем отдельно
-                                 : $this->insertAfter(after_key: $this->last->key, data: $data, key: $key);  //а если список не пустой - вставим элемент после последнего
+        $item = $this->isEmpty() ? $this->insertFirst($data, $key) //if the list is empty - process the inserted item separately
+            : $this->insertAfter($this->last->key, $data, $key);  //otherwise - insert after the last item
 
-        return $this->last = $item;    //обязательно нужно перезаписать указатель на последний элемент (можно одновременно вернуть вставленный элемент)
+        return $this->last = $item;    //dont forget to change the pointer to the last item
     }
 
-    public function deleteFirst() :DoublyLinkedListItem
+    public function deleteFirst(): DoublyLinkedListItem
     {
         $deleted = $this->first;
 
@@ -95,7 +88,7 @@ class DoublyLinkedList
         return $deleted;
     }
 
-    public function deleteLast() :DoublyLinkedListItem
+    public function deleteLast(): DoublyLinkedListItem
     {
         $deleted = $this->last;
 
@@ -105,17 +98,17 @@ class DoublyLinkedList
         return $deleted;
     }
 
-    public function delete($key) :DoublyLinkedListItem
+    public function delete($key): DoublyLinkedListItem
     {
-        $deleted = clone $this->find($key); //clone нужен, чтобы не произошло "короткого замыкания" ссылок
+        $deleted = clone $this->find($key); //clone solves the references problem
 
-        if ($deleted == $this->first)       //можно обработать случай, если удаляем первый или последний элемент - для этого нужна другая процедура
+        if ($deleted == $this->first)       //process the deletion of the first and last item separately
             return $this->deleteFirst();
         elseif ($deleted == $this->last)
             return $this->deleteLast();
 
-        $deleted->prev->next = $deleted->next;  //предыдущий элемент должен указывать на следующий
-        $deleted->next->prev = $deleted->prev;  //а следующий — на предыдущий
+        $deleted->prev->next = $deleted->next;  //previous item must point to next one
+        $deleted->next->prev = $deleted->prev;  //and the next item must point to previous
 
         return $deleted;
     }
@@ -125,18 +118,23 @@ class DoublyLinkedList
 $list = new DoublyLinkedList();
 
 
-$list->insertFirst(50, 50);
-$list->insertFirst(20, 20);
+$_50 = $list->insertFirst(50, 50);
+$_20 = $list->insertFirst(20, 20);
+$_10 = $list->insertFirst(10, 10);
+
 $list->insertLast(70, 70);
 $list->insertLast(88, 88);
+$list->insertLast(90, 90);
 
 
-$list->delete(88);
+$list->delete(70);
+$list->deleteLast();
+print_r($list->deleteFirst());
 
 //20 - 50 - 70 - 88
 
 
-//$list->insertAfter(50, 1000, 1000);
+$list->insertAfter(50, 1000, 1000);
 //var_dump( $list->deleteLast() );
 
-var_dump( $list );
+print_r($list);
